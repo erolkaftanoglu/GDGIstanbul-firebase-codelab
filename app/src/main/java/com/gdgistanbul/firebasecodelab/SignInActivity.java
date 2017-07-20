@@ -1,9 +1,9 @@
 package com.gdgistanbul.firebasecodelab;
 
 import android.content.Intent;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
@@ -23,7 +23,7 @@ import static com.gdgistanbul.firebasecodelab.MainActivity.mGoogleApiClient;
 
 public class SignInActivity extends AppCompatActivity implements View.OnClickListener {
 
-    // Firebase instance variables
+    // Firebase instance degisken tanimi
     private FirebaseAuth mFirebaseAuth;
     private String TAG = this.getClass().getName();
 
@@ -32,7 +32,7 @@ public class SignInActivity extends AppCompatActivity implements View.OnClickLis
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sign_in);
         findViewById(R.id.sign_in_button).setOnClickListener(this);
-        // Initialize FirebaseAuth
+        // FirebaseAuth init
         mFirebaseAuth = FirebaseAuth.getInstance();
     }
 
@@ -54,16 +54,15 @@ public class SignInActivity extends AppCompatActivity implements View.OnClickLis
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
+        //G+ basarili donus kodu -> 9001//RC_SIGN_IN
         if (requestCode == RC_SIGN_IN) {
             GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
             if (result.isSuccess()) {
-                // Google Sign In was successful, authenticate with Firebase
+                //basarili giris ve firebase baglantisi
                 GoogleSignInAccount account = result.getSignInAccount();
                 firebaseAuthWithGoogle(account);
             } else {
-                // Google Sign In failed, update UI appropriately
-                // ...
+                //G+ login basarisiz
             }
         }
     }
@@ -77,9 +76,7 @@ public class SignInActivity extends AppCompatActivity implements View.OnClickLis
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         Log.d(TAG, "signInWithCredential:onComplete:" + task.isSuccessful());
 
-                        // If sign in fails, display a message to the user. If sign in succeeds
-                        // the auth state listener will be notified and logic to handle the
-                        // signed in user can be handled in the listener.
+                        //firebase connection durum mesajlari
                         if (!task.isSuccessful()) {
                             Log.w(TAG, "signInWithCredential", task.getException());
                             Toast.makeText(SignInActivity.this, "Authentication failed.",

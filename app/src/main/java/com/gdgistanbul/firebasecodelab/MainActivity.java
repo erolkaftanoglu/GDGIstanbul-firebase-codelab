@@ -1,13 +1,10 @@
 package com.gdgistanbul.firebasecodelab;
 
 import android.content.Intent;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
-import android.text.InputFilter;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Menu;
@@ -16,6 +13,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.ProgressBar;
 
 import com.gdgistanbul.firebasecodelab.models.Message;
@@ -31,30 +29,29 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MainActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener {
+public class MainActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener,ValueEventListener, View.OnClickListener, TextWatcher {
 
-    // Firebase instance variables
+    // Firebase instance degisken tanimlari
     private FirebaseAuth mFirebaseAuth;
     private FirebaseUser mFirebaseUser;
-    private String mUsername;
-    private String mPhotoUrl;
-
     public static final String ANONYMOUS = "anonymous";
     public static GoogleApiClient mGoogleApiClient;
     public static final int RC_SIGN_IN = 9001;
     private String TAG = this.getClass().getName();
     private FirebaseDatabase database;
-    private DatabaseReference myRef ;
-    private ProgressBar mProgressBar;
-    private RecyclerView mMessageRecyclerView;
-    private LinearLayoutManager mLinearLayoutManager;
+    private DatabaseReference myRef;
+
+    private String mUsername;
+    private ListView messageListView;
     private EditText mMessageEditText;
 
-    private static final String LOADING_IMAGE_URL = "https://www.google.com/images/spin-32.gif";
     private Button mSendButton;
+
+    private MessageAdapter messageAdapter = new MessageAdapter();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,92 +69,32 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
                 .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
                 .build();
 
-        // Initialize ProgressBar and RecyclerView.
-        mProgressBar = (ProgressBar) findViewById(R.id.progressBar);
-        mMessageRecyclerView = (RecyclerView) findViewById(R.id.messageRecyclerView);
-        mLinearLayoutManager = new LinearLayoutManager(this);
-        mLinearLayoutManager.setStackFromEnd(true);
-        mMessageRecyclerView.setLayoutManager(mLinearLayoutManager);
-
-
-        mProgressBar.setVisibility(ProgressBar.INVISIBLE);
-
+        messageListView = (ListView) findViewById(R.id.messageListView);
+        messageListView.setAdapter(messageAdapter);
         mMessageEditText = (EditText) findViewById(R.id.messageEditText);
-        mMessageEditText.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-            }
-
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                if (charSequence.toString().trim().length() > 0) {
-                    mSendButton.setEnabled(true);
-                } else {
-                    mSendButton.setEnabled(false);
-                }
-            }
-
-            @Override
-            public void afterTextChanged(Editable editable) {
-            }
-        });
-
         mSendButton = (Button) findViewById(R.id.sendButton);
-        mSendButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Message message = new
-                        Message(mUsername,mMessageEditText.getText().toString());
-                String uniqe = myRef.push().getKey();
-                Map<String,Object> map = new HashMap<>();
-                map.put(uniqe,message.toMap());
-                myRef.updateChildren(map);
-                mMessageEditText.setText("");
-            }
-        });
 
 
-        // Initialize Firebase Auth
+        database = FirebaseDatabase.getInstance();
+        myRef = database.getReference("messages");
+        // databaseden sirali okuma islemi
+        myRef.orderByChild("messageTime").addValueEventListener(this);
+
         mFirebaseAuth = FirebaseAuth.getInstance();
         mFirebaseUser = mFirebaseAuth.getCurrentUser();
+
+        // Initialize Firebase Auth
         if (mFirebaseUser == null) {
-            // Not signed in, launch the Sign In activity
             startActivity(new Intent(this, SignInActivity.class));
             finish();
             return;
         } else {
             mUsername = mFirebaseUser.getDisplayName();
-            if (mFirebaseUser.getPhotoUrl() != null) {
-                mPhotoUrl = mFirebaseUser.getPhotoUrl().toString();
-            }
         }
 
-        // Write a message to the database
-        database = FirebaseDatabase.getInstance();
-        myRef = database.getReference("messages");
-
-        // Read from the database
-        myRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                // This method is called once with the initial value and again
-                // whenever data at this location is updated.
-
-                //tum mesajlar firebase'den cekilir.
-                for (DataSnapshot messageSnapshot: dataSnapshot.getChildren()) {
-                    String value = messageSnapshot.getKey();
-                    Log.d(TAG, "Value is: " + value);
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError error) {
-                // Failed to read value
-                Log.w(TAG, "Failed to read value.", error.toException());
-            }
-        });
+        mMessageEditText.addTextChangedListener(this);
+        mSendButton.setOnClickListener(this);
     }
-
 
 
     @Override
@@ -183,6 +120,56 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        Log.v(TAG, "Failed connection." + connectionResult.getErrorMessage());
 
+    }
+
+    @Override
+    public void onDataChange(DataSnapshot dataSnapshot) {
+        messageAdapter.clearAllItems();
+        //tum mesajlar firebase'den cekilir.
+        for (DataSnapshot messageSnapshot : dataSnapshot.getChildren()) {
+            Message value = messageSnapshot.getValue(Message.class);
+            Log.d(TAG, "Value is: " + value.getData());
+            messageAdapter.add(value);
+        }
+        messageListView.setAdapter(messageAdapter);
+    }
+
+    @Override
+    public void onCancelled(DatabaseError databaseError) {
+        Log.w(TAG, "Failed to read value.", databaseError.toException());
+
+    }
+
+    @Override
+    public void onClick(View view) {
+        Date now = new Date();
+        Message message = new
+                Message(mUsername, mMessageEditText.getText().toString(), now.getTime());
+        String uniqe = myRef.push().getKey();
+        Map<String, Object> map = new HashMap<>();
+        map.put(uniqe, message.toMap());
+        myRef.updateChildren(map);
+        mMessageEditText.setText("");
+    }
+
+    @Override
+    public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+        //none
+    }
+
+    @Override
+    public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+        if (charSequence.toString().trim().length() > 0) {
+            mSendButton.setEnabled(true);
+        } else {
+            mSendButton.setEnabled(false);
+        }
+    }
+
+    @Override
+    public void afterTextChanged(Editable editable) {
+        //none
     }
 }

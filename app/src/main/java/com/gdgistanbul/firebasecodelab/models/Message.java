@@ -15,10 +15,17 @@ import java.util.Map;
 public class Message implements Serializable {
     private String userName;
     private String data;
+    private Long messageTime;
 
-    public Message(String userName, String data) {
+
+    //Firebase'in objeyi parse edebilmesi için eklendi.
+    public Message() {
+    }
+
+    public Message(String userName, String data, Long messageTime) {
         this.userName = userName;
         this.data = data;
+        this.messageTime = messageTime;
     }
 
     public String getUserName() {
@@ -37,6 +44,13 @@ public class Message implements Serializable {
         this.data = data;
     }
 
+    public Long getMessageTime() {
+        return messageTime;
+    }
+
+    public void setMessageTime(Long messageTime) {
+        this.messageTime = messageTime;
+    }
 
     @Exclude
     public Map<String, Object> toMap() {
@@ -44,7 +58,9 @@ public class Message implements Serializable {
 
         result.put("userName", getUserName());
         result.put("data", getData());
+        result.put("messageTime", getMessageTime());
 
         return result;
     }
+
 }

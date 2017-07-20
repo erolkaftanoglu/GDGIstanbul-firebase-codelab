@@ -24,6 +24,7 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.crash.FirebaseCrash;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -120,6 +121,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
 
         //Analitik init
         mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
+
+        //Crash raporu icin exception firlatilir. :)))
+        // FirebaseCrash.report(new Exception("My first Android non-fatal error"));
     }
 
 

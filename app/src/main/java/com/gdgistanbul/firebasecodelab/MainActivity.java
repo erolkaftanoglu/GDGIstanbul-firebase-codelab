@@ -14,7 +14,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.ProgressBar;
 
 import com.gdgistanbul.firebasecodelab.models.Message;
 import com.google.android.gms.auth.api.Auth;
@@ -28,12 +27,14 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MainActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener,ValueEventListener, View.OnClickListener, TextWatcher {
+public class MainActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener, ValueEventListener, View.OnClickListener, TextWatcher {
 
     // Firebase instance degisken tanimlari
     private FirebaseAuth mFirebaseAuth;
@@ -68,6 +69,19 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
                 .enableAutoManage(this /* FragmentActivity */, this /* OnConnectionFailedListener */)
                 .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
                 .build();
+
+        if (getIntent().getExtras() != null) {
+            for (String key : getIntent().getExtras().keySet()) {
+                Object value = getIntent().getExtras().get(key);
+                Log.d(TAG, "Key: " + key + " Value: " + value);
+            }
+        }
+
+        //toplu notf. icin konu basligi
+        FirebaseMessaging.getInstance().subscribeToTopic("news");
+        //Notf. alabilmeniz icin cihazin idsi
+        String token = FirebaseInstanceId.getInstance().getToken();
+        Log.d(TAG,token);
 
         messageListView = (ListView) findViewById(R.id.messageListView);
         messageListView.setAdapter(messageAdapter);

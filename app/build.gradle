@@ -33,10 +33,11 @@ dependencies {
 
     testCompile 'junit:junit:4.12'
 
-    //firebase auth
+    //firebase
     compile 'com.google.firebase:firebase-auth:11.0.2'
     compile 'com.google.firebase:firebase-database:11.0.2'
     compile 'com.firebaseui:firebase-ui-database:1.2.0'
+    compile 'com.google.firebase:firebase-messaging:11.0.2'
 
     //withoutcodelab : Add Google Service
     compile 'com.google.android.gms:play-services-auth:11.0.2'

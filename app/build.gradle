@@ -39,6 +39,8 @@ dependencies {
     compile 'com.firebaseui:firebase-ui-database:1.2.0'
     compile 'com.google.firebase:firebase-messaging:11.0.2'
     compile 'com.google.firebase:firebase-ads:11.0.2'
+    compile 'com.google.firebase:firebase-core:11.0.2'
+
 
 
     //withoutcodelab : Add Google Service

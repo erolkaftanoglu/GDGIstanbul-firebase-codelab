@@ -21,6 +21,7 @@ import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -40,6 +41,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
     // Firebase instance degisken tanimlari
     private FirebaseAuth mFirebaseAuth;
     private FirebaseUser mFirebaseUser;
+    private FirebaseAnalytics mFirebaseAnalytics;
+
     public static final String ANONYMOUS = "anonymous";
     public static GoogleApiClient mGoogleApiClient;
     public static final int RC_SIGN_IN = 9001;
@@ -114,6 +117,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
         //https://apps.admob.com // YOUR_ADMOB_APP_ID
         //Reklam tipi secilip, konfigurasyon yapilir.
         MobileAds.initialize(this, "YOUR_ADMOB_APP_ID");
+
+        //Analitik init
+        mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
     }
 
 
@@ -172,6 +178,13 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
         map.put(uniqe, message.toMap());
         myRef.updateChildren(map);
         mMessageEditText.setText("");
+
+        //Gönderilen mesaj analitik datasi olarak eklenir.
+        Bundle bundle = new Bundle();
+        bundle.putString(FirebaseAnalytics.Param.ITEM_ID, uniqe);
+        bundle.putString(FirebaseAnalytics.Param.ITEM_NAME, message.getData());
+        bundle.putString(FirebaseAnalytics.Param.CONTENT_TYPE, "message");
+        mFirebaseAnalytics.logEvent(FirebaseAnalytics.Event.SELECT_CONTENT, bundle);
     }
 
     @Override

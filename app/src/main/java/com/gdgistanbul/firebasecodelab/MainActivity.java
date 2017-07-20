@@ -16,6 +16,7 @@ import android.widget.EditText;
 import android.widget.ListView;
 
 import com.gdgistanbul.firebasecodelab.models.Message;
+import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.ConnectionResult;
@@ -81,7 +82,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
         FirebaseMessaging.getInstance().subscribeToTopic("news");
         //Notf. alabilmeniz icin cihazin idsi
         String token = FirebaseInstanceId.getInstance().getToken();
-        Log.d(TAG,token);
+        Log.d(TAG, token);
 
         messageListView = (ListView) findViewById(R.id.messageListView);
         messageListView.setAdapter(messageAdapter);
@@ -108,6 +109,11 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
 
         mMessageEditText.addTextChangedListener(this);
         mSendButton.setOnClickListener(this);
+
+        //Reklam init
+        //https://apps.admob.com // YOUR_ADMOB_APP_ID
+        //Reklam tipi secilip, konfigurasyon yapilir.
+        MobileAds.initialize(this, "YOUR_ADMOB_APP_ID");
     }
 
 
